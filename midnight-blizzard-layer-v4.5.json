@@ -1,0 +1,65 @@
+//If you use Windows Security Event 4688 instead of Sysmon EventID 1, change EventID and field names accordingly.
+
+//Add exclusions for known admin accounts and jump hosts to reduce noise.
+{
+  "version": "4.5",
+  "name": "Midnight Blizzard (CERT-UA + MS) - Oct 22 2024 RDP spearphish (mini)",
+  "description": "Core ATT&CK techniques mapped for the Oct 22, 2024 Midnight Blizzard RDP spear-phishing campaign. Sources: Microsoft blog & CERT-UA.",
+  "domain": "enterprise-attack",
+  "techniques": [
+    {
+      "techniqueID": "T1566.001",
+      "tactic": "initial-access",
+      "score": 100,
+      "comment": "Delivery: spear-phishing email with signed .rdp attachment (Microsoft & CERT-UA)."
+    },
+    {
+      "techniqueID": "T1204.002",
+      "tactic": "execution",
+      "score": 90,
+      "comment": "Execution: victim opens .rdp file and mstsc is invoked."
+    },
+    {
+      "techniqueID": "T1021.001",
+      "tactic": "lateral-movement",
+      "score": 95,
+      "comment": "Remote Desktop Protocol: outbound RDP to attacker-controlled servers for interactive access."
+    },
+    {
+      "techniqueID": "T1555.003",
+      "tactic": "credential-access",
+      "score": 85,
+      "comment": "Credential Manager / credential capture via RDP session or proxied login prompts."
+    },
+    {
+      "techniqueID": "T1071",
+      "tactic": "command-and-control",
+      "score": 75,
+      "comment": "Application layer protocols (HTTP/DNS) for callbacks or C2 if toolset used."
+    },
+    {
+      "techniqueID": "T1547",
+      "tactic": "persistence",
+      "score": 70,
+      "comment": "Potential persistence mechanisms post-access: scheduled tasks, services, run keys."
+    },
+    {
+      "techniqueID": "T1036.005",
+      "tactic": "defense-evasion",
+      "score": 60,
+      "comment": "Masquerading: signed .rdp attachments and legitimate names reduce suspicion."
+    }
+  ],
+  "gradient": {
+    "colors": [
+      "#ffffff",
+      "#ff6666"
+    ],
+    "minValue": 0,
+    "maxValue": 100
+  },
+  "legendItems": [],
+  "metadata": [],
+  "links": [],
+  "showTacticRowBackground": true
+}
