@@ -1,0 +1,18 @@
+title: Email with .rdp attachment from external sender (mail gateway)
+id: 9f4e6a21-0000-4c7a-bbbb-0123456789ab
+status: experimental
+description: Detect incoming email containing a .rdp attachment from a sender domain not in the trusted whitelist.
+author: Generated for Project-1 Midnight Blizzard mapping
+date: 2024-11-XX
+logsource:
+  product: mailgateway
+detection:
+  selection:
+    attachment_extensions|contains: ".rdp"
+    sender_domain_not_in_whitelist: true
+  condition: selection
+falsepositives:
+  - Legitimate external support vendors (should be pre-whitelisted with business justification)
+level: high
+tags:
+  - attack.T1566.001
