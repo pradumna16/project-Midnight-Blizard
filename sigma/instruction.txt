@@ -1,0 +1,7 @@
+How to operationalize:
+
+Implement as an Exchange transport rule or DLP rule: quarantine .rdp attachments from external senders and send to analyst review.
+
+If your mail gateway can sandbox attachments, submit to sandbox for quick verdict.
+
+Add an automated workflow: quarantine → extract attachment hash → check TI feeds → release if safe.
