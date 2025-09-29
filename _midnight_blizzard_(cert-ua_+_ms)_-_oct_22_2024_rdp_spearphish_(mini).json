@@ -1,0 +1,343 @@
+{
+	"name": " Midnight Blizzard (CERT-UA + MS) - Oct 22 2024 RDP spearphish (mini)",
+	"versions": {
+		"attack": "17",
+		"navigator": "5.1.1",
+		"layer": "4.5"
+	},
+	"domain": "enterprise-attack",
+	"description": "Evidence / sources:\n- Microsoft blog: https://www.microsoft.com/en-us/security/blog/2024/10/29/midnight-blizzard-conducts-large-scale-spear-phishing-campaign-using-rdp-files/\n- CERT-UA alert: https://cert.gov.ua/article/6281076\n\nWhy mapped: Vendor reports confirm delivery via targeted spear-phish emails containing signed .rdp attachments impersonating vendors and Microsoft. See CERT-UA alerts listing campaign waves and sample screenshots.\nRecommended data sources: Mail gateway logs, EML archive, attachment hashes, DKIM/SPF/DMARC.\n",
+	"filters": {
+		"platforms": [
+			"Windows",
+			"Linux",
+			"macOS",
+			"Network Devices",
+			"ESXi",
+			"PRE",
+			"Containers",
+			"IaaS",
+			"SaaS",
+			"Office Suite",
+			"Identity Provider"
+		]
+	},
+	"sorting": 0,
+	"layout": {
+		"layout": "side",
+		"aggregateFunction": "average",
+		"showID": false,
+		"showName": true,
+		"showAggregateScores": false,
+		"countUnscored": false,
+		"expandedSubtechniques": "none"
+	},
+	"hideDisabled": false,
+	"techniques": [
+		{
+			"techniqueID": "T1566.001",
+			"tactic": "initial-access",
+			"score": 100,
+			"color": "#31a354",
+			"comment": "S.1\nDelivery: spear-phishing email with signed .rdp attachment (Microsoft & CERT-UA).\nEvidence / sources:\n- Microsoft blog: https://www.microsoft.com/en-us/security/blog/2024/10/29/midnight-blizzard-conducts-large-scale-spear-phishing-campaign-using-rdp-files/\n- CERT-UA alert: https://cert.gov.ua/article/6281076\n\nWhy mapped: Vendor reports confirm delivery via targeted spear-phish emails containing signed .rdp attachments impersonating vendors and Microsoft. See CERT-UA alerts listing campaign waves and sample screenshots.\nRecommended data sources: Mail gateway logs, EML archive, attachment hashes, DKIM/SPF/DMARC.\n",
+			"enabled": true,
+			"metadata": [
+				{
+					"name": "Timeline",
+					"value": "2024-10-17 → 2024-10-25 (multiple CERT-UA alerts)"
+				},
+				{
+					"divider": true
+				},
+				{
+					"name": "Source",
+					"value": "Microsoft blog + CERT-UA alerts (#6281076, #6281095, #6281123, #6281202, #6281632, #6281681, #6281701)"
+				},
+				{
+					"name": "Comment",
+					"value": "Emails with malicious .RDP files disguised as official docs (UNHCR, Tax Service, Logistics, Sanctions, etc.)."
+				},
+				{
+					"name": "score",
+					"value": "1"
+				}
+			],
+			"links": [],
+			"showSubtechniques": false
+		},
+		{
+			"techniqueID": "T1204.002",
+			"tactic": "execution",
+			"score": 90,
+			"color": "#e60d0d",
+			"comment": "S.2\nExecution: victim opens .rdp file and mstsc is invoked.\nEvidence / sources:\n- Microsoft blog: https://www.microsoft.com/...\n- CERT-UA: https://cert.gov.ua/article/6281076\n\nWhy mapped: Victim opens .rdp file which launches mstsc.exe (process creation with .rdp commandline). CERT-UA screenshots show users opening RDP attachments.\nDetection suggestions: Sysmon/EventID1 (process create) or Windows 4688; CommandLine contains “.rdp”.\n",
+			"enabled": true,
+			"metadata": [
+				{
+					"name": "score",
+					"value": "2"
+				},
+				{
+					"name": "Timeline",
+					"value": "Same as phishing wave (victim opens RDP file)"
+				},
+				{
+					"name": "Source",
+					"value": "Microsoft blog"
+				},
+				{
+					"name": "comment",
+					"value": "Victim double-clicks .RDP → Windows Remote Desktop Connection (mstsc.exe) executes with attacker-supplied settings."
+				}
+			],
+			"links": [],
+			"showSubtechniques": false
+		},
+		{
+			"techniqueID": "T1021.001",
+			"tactic": "lateral-movement",
+			"score": 95,
+			"color": "#e60d0d",
+			"comment": "Remote Desktop Protocol: outbound RDP to attacker-controlled servers for interactive access.\n\nEvidence / sources:\n- Microsoft blog: https://www.microsoft.com/...\n- CERT-UA: https://cert.gov.ua/article/6281076\n\nWhy mapped: .rdp files configure client to connect to attacker-controlled RDP endpoints (outbound TCP 3389). CERT-UA notes external RDP endpoints used by attacker.\nDetection suggestions: Firewall/netflow for outbound TCP 3389, Windows Security 4624 Logon Type 10, PCAP.\n",
+			"enabled": true,
+			"metadata": [
+				{
+					"name": "score",
+					"value": "3"
+				},
+				{
+					"name": "Timeline",
+					"value": "mmediately after mstsc execution (same session)."
+				},
+				{
+					"name": "comment",
+					"value": "Outbound connection to external IP on TCP/3389 from user host not in approved list → alert."
+				}
+			],
+			"links": [],
+			"showSubtechniques": false
+		},
+		{
+			"techniqueID": "T1555.003",
+			"tactic": "credential-access",
+			"score": 85,
+			"color": "#74c476",
+			"comment": "Credential Manager / credential capture via RDP session or proxied login prompts.\n\nEvidence / sources:\n- Microsoft blog: https://www.microsoft.com/...\n- CERT-UA: https://cert.gov.ua/article/6281076\n\nWhy mapped: Attack objective includes credential capture via RDP login prompts or proxying; credential stores may be targeted post-access.\nDetection suggestions: EDR alerts for LSASS access, suspicious process memory reads, new privileged logons.\n",
+			"enabled": true,
+			"metadata": [
+				{
+					"name": "score",
+					"value": "4"
+				},
+				{
+					"name": "Timeline",
+					"value": "during or shortly after RDP session / credential entry."
+				},
+				{
+					"name": "comment",
+					"value": "Processes opening handles to lsass.exe or unusual access to credential stores shortly after RDP session → alert"
+				}
+			],
+			"links": [],
+			"showSubtechniques": false
+		},
+		{
+			"techniqueID": "T1071",
+			"tactic": "command-and-control",
+			"color": "",
+			"comment": "",
+			"enabled": true,
+			"metadata": [],
+			"links": [],
+			"showSubtechniques": true
+		},
+		{
+			"techniqueID": "T1547",
+			"tactic": "persistence",
+			"color": "",
+			"comment": "",
+			"enabled": true,
+			"metadata": [],
+			"links": [],
+			"showSubtechniques": true
+		},
+		{
+			"techniqueID": "T1036.005",
+			"tactic": "defense-evasion",
+			"score": 60,
+			"color": "#fcf26b",
+			"comment": "Masquerading: signed .rdp attachments and legitimate names reduce suspicion.\n\nEvidence:\n\nMicrosoft blog: https://www.microsoft.com/\n...\n\nCERT-UA: https://cert.gov.ua/article/6281076\n\nWhy mapped: RDP attachments named to match humanitarian/government lures; signed files mimic legitimacy to evade detection.\n\nSequence (score): 7 (applies at delivery and supports evasion across lifecycle)\nTimeline: applied at delivery and throughout attack lifecycle.\nData sources: File metadata (filename, signatures), email header/From display name, gateway quarantine notes.\nDetection hypothesis: Signed .rdp from unusual signer or filename matching high-risk lure → require analyst review.\nInvestigation steps: verify digital signature chain, check signer reputation, correlate with sender domain and DMARC results.\nTop mitigations: validate code-signing chains, quarantine attachments from unknown signers, user warnings for externally-signed files, stricter email attachment policies.",
+			"enabled": true,
+			"metadata": [
+				{
+					"name": "score",
+					"value": "7"
+				},
+				{
+					"name": "Timeline",
+					"value": "applied at delivery and throughout attack lifecycle."
+				},
+				{
+					"name": "comment",
+					"value": "Signed .rdp from unusual signer or filename matching high-risk lure → require analyst review."
+				}
+			],
+			"links": [],
+			"showSubtechniques": false
+		},
+		{
+			"techniqueID": "T1547.001",
+			"tactic": "persistence",
+			"color": "#e6550d",
+			"comment": "Persistence\n\nEvidence / sources:\n- Microsoft blog: https://www.microsoft.com/...\n- CERT-UA: https://cert.gov.ua/article/6281076\n\nWhy mapped: Potential for scheduled tasks, services, Run keys after remote access. Verify for new autorun artifacts post-RDP session.\nDetection suggestions: Registry autoruns, scheduled task creation events, service install events.\n",
+			"enabled": true,
+			"metadata": [
+				{
+					"name": "score",
+					"value": "6"
+				},
+				{
+					"name": "Timeline",
+					"value": "post-credential use and lateral movement."
+				},
+				{
+					"name": "comment",
+					"value": "New Run key / scheduled task created by user process shortly after RDP session → flag for review."
+				}
+			],
+			"links": [],
+			"showSubtechniques": false
+		},
+		{
+			"techniqueID": "T1547.001",
+			"tactic": "privilege-escalation",
+			"color": "#e6550d",
+			"comment": "Persistence\n\nEvidence / sources:\n- Microsoft blog: https://www.microsoft.com/...\n- CERT-UA: https://cert.gov.ua/article/6281076\n\nWhy mapped: Potential for scheduled tasks, services, Run keys after remote access. Verify for new autorun artifacts post-RDP session.\nDetection suggestions: Registry autoruns, scheduled task creation events, service install events.\n",
+			"enabled": true,
+			"metadata": [
+				{
+					"name": "score",
+					"value": "6"
+				},
+				{
+					"name": "Timeline",
+					"value": "post-credential use and lateral movement."
+				},
+				{
+					"name": "comment",
+					"value": "New Run key / scheduled task created by user process shortly after RDP session → flag for review."
+				}
+			],
+			"links": [],
+			"showSubtechniques": false
+		},
+		{
+			"techniqueID": "T1071.004",
+			"tactic": "command-and-control",
+			"color": "#fc3b3b",
+			"comment": "Application Layer Protocol (C2)\n\nEvidence / sources:\n- Microsoft blog: https://www.microsoft.com/...\n- CERT-UA: https://cert.gov.ua/article/6281076\n\nWhy mapped: If follow-on tools/C2 used, actor likely uses HTTP/DNS to blend callbacks. Monitor proxy and DNS logs for unusual periodic activity.\nDetection suggestions: Proxy logs, DNS query histories, TLS SNI anomalies, beaconing detection.\n",
+			"enabled": true,
+			"metadata": [
+				{
+					"name": "score",
+					"value": "5"
+				},
+				{
+					"name": "comment",
+					"value": "Host that had RDP activity begins periodic small HTTP/DNS callbacks to rare domains → suspicious beaconing"
+				}
+			],
+			"links": [],
+			"showSubtechniques": false
+		},
+		{
+			"techniqueID": "T1071.001",
+			"tactic": "command-and-control",
+			"color": "#e60d0d",
+			"comment": "",
+			"enabled": true,
+			"metadata": [
+				{
+					"name": "score",
+					"value": "5"
+				},
+				{
+					"name": "Timline",
+					"value": "After successful RDP connection"
+				},
+				{
+					"name": "comment",
+					"value": "RDP connections to attacker-controlled servers (common cloud infra, TCP/3389)"
+				}
+			],
+			"links": [],
+			"showSubtechniques": false
+		},
+		{
+			"techniqueID": "T1555",
+			"tactic": "credential-access",
+			"color": "#fc3b3b",
+			"comment": "",
+			"enabled": true,
+			"metadata": [],
+			"links": [],
+			"showSubtechniques": true
+		},
+		{
+			"techniqueID": "T1036",
+			"tactic": "defense-evasion",
+			"color": "#fce93b",
+			"comment": "",
+			"enabled": true,
+			"metadata": [],
+			"links": [],
+			"showSubtechniques": true
+		},
+		{
+			"techniqueID": "T1021",
+			"tactic": "lateral-movement",
+			"color": "#3182bd",
+			"comment": "",
+			"enabled": true,
+			"metadata": [],
+			"links": [],
+			"showSubtechniques": true
+		},
+		{
+			"techniqueID": "T1204",
+			"tactic": "execution",
+			"color": "",
+			"comment": "",
+			"enabled": true,
+			"metadata": [],
+			"links": [],
+			"showSubtechniques": true
+		},
+		{
+			"techniqueID": "T1566",
+			"tactic": "initial-access",
+			"color": "",
+			"comment": "",
+			"enabled": true,
+			"metadata": [],
+			"links": [],
+			"showSubtechniques": true
+		}
+	],
+	"gradient": {
+		"colors": [
+			"#ffffffff",
+			"#ff6666ff"
+		],
+		"minValue": 0,
+		"maxValue": 100
+	},
+	"legendItems": [],
+	"metadata": [],
+	"links": [],
+	"showTacticRowBackground": true,
+	"tacticRowBackground": "#dddddd",
+	"selectTechniquesAcrossTactics": true,
+	"selectSubtechniquesWithParent": false,
+	"selectVisibleTechniques": false
+}
